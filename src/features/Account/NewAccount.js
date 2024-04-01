@@ -1,12 +1,12 @@
-import {Button, FormControl, Grid, InputLabel, List, Paper, TextField} from "@mui/material";
+import {Button, CircularProgress, FormControl, Grid, InputLabel, List, Paper, TextField} from "@mui/material";
 import {useForm} from "react-hook-form";
 import {useEffect, useState} from "react";
 
 import {useDispatch, useSelector} from "react-redux";
-import {fetchAddAccount, fetchAllAccount, selectAllAccount} from "./accountSlice";
+import {fetchAddAccount, fetchAllAccount, selectAllAccount, selectStatusAccount} from "./accountSlice";
 
 const NewAccount=()=>{
-    const {  control, handleSubmit } = useForm({
+    const {  control,  } = useForm({
         defaultValues: {
             initial: ""
         },
@@ -14,30 +14,39 @@ const NewAccount=()=>{
     const dispatch = useDispatch();
     const [data,setData]=useState([]);
     const allAccount = useSelector(selectAllAccount);
-    const onSubmit = () =>{
-        console.log("dsqdq")
+    const statusAccount = useSelector(selectStatusAccount);
+    const [open,setOpen]=useState(false)
+
+
+    const onSubmitButton = () =>{
+        setOpen(true)
     dispatch(fetchAddAccount({
-        "customerId":"dqdqd",
-        "initialCredit":"10"
+        "customerId":data?.customerId,
+        "initialCredit":data?.initialCredit
     }));
     }
 useEffect(()=>{
-   dispatch(fetchAllAccount())
-},[])
+    if(statusAccount=="succeeded" || statusAccount=="rejected" ){
+        setOpen(false)
+        dispatch(fetchAllAccount({customerId:data?.customerId}))
+    }
+
+},[statusAccount])
+
     return (
         <>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form >
             <br/>
             <Grid container spacing={2} direction={"column"}>
                 <Grid item>
             <TextField
                 control={control}
                 id="type"
-                label="Account type"
+                label="Customer Id"
                 onChange={(e) =>
                     setData((data) => ({
                         ...data,
-                        type: e.target.value || null,
+                        customerId: e.target.value || null,
                     }))
                 }
             />
@@ -45,25 +54,39 @@ useEffect(()=>{
                 <Grid item>
                     <TextField
                         control={control}
-                        name="initialcredit"
-                        id="initialcredit"
+                        name="initialCredit"
+                        id="initialCredit"
                         label="Initial Credit"
                         onChange={(e) =>
                             setData((data) => ({
                                 ...data,
-                                initialcredit: e.target.value || null,
+                                initialCredit: e.target.value || null,
                             }))
                         }
                     />
                 </Grid>
                 <Grid item>
-            <Button type="submit" onClick={onSubmit}>
+                    {open ? <CircularProgress /> :(
+            <Button onClick={onSubmitButton}>
                 Add Account
             </Button>
+                    )
+                    }
                 </Grid>
             </Grid>
+
         </form>
-<p> {allAccount.}</p>
+
+            <p key={"m2"} style={{ fontSize: 16, fontWeight: "bold"}}>
+                accountId -- accountType -- account.balance -- account.customerId
+            </p>
+            {allAccount?.accountDTOS?.map(account => (
+                <>
+                <p key={account.accountId}>
+                    {account.accountId} -- {account.accountType} -- {account.balance} -- {account.customerId}
+                </p>
+                </>
+            ))}
         </>
 
     )
